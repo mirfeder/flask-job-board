@@ -1,14 +1,14 @@
 from flask import Flask, render_template, g, request, redirect, url_for
 from datetime import datetime
 import sqlite3
-PATH='./db/jobs.sqlite'
+PATH='db/jobs.sqlite'
 
 app = Flask(__name__)
 
 def open_connection():
   connection = getattr(g, '_connection', None)
   if connection is None:
-    connection = g._coonection = sqlite3.connect(PATH)
+    g._connection = connection = sqlite3.connect(PATH)
   connection.row_factory = sqlite3.Row
   return connection
 
@@ -48,12 +48,13 @@ def employer(employer_id):
 
 @app.route('/employer/<employer_id>/review', methods=("GET", "POST"))
 def review(employer_id):
+  date = datetime.now().strftime("%m/%d/%Y")
+  print(request.form.values)
   if request.method == 'POST':
     review = request.form['review']
     rating = request.form['rating']
     title = request.form['title']
     status = request.form['status']
-    date = datetime.now().strftime("%m/%d/%Y")
     execute_sql('INSERT INTO review (review, rating, title, date, status, employer_id) VALUES (?, ?, ?, ?, ?, ?)',[review, rating, title, date, status, employer_id], commit=True)
     return redirect(url_for('employer', employer_id=employer_id))
   else:
